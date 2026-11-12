@@ -15,3 +15,7 @@ task_registry.register( "go2", LeggedRobot, GO2RoughCfg(), GO2RoughCfgPPO())
 task_registry.register( "h1", H1Robot, H1RoughCfg(), H1RoughCfgPPO())
 task_registry.register( "h1_2", H1_2Robot, H1_2RoughCfg(), H1_2RoughCfgPPO())
 task_registry.register( "g1", G1Robot, G1RoughCfg(), G1RoughCfgPPO())
+
+from .go2.go2_terrain_config import GO2TerrainCfg, GO2TerrainCfgPPO
+from .go2.go2_terrain import GO2Terrain
+task_registry.register("go2_terrain", GO2Terrain, GO2TerrainCfg(), GO2TerrainCfgPPO())

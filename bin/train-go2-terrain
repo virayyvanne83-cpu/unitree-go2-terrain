@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -e
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+exec "$root/bin/run" python -u legged_gym/scripts/train.py --task go2_terrain --num_envs 4096 --headless --num_threads 4 --run_name reconstructed_flat_to_terrain "$@"

@@ -27,11 +27,11 @@ def play(args):
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
-    obs = env.get_observations()
     # load policy
     train_cfg.runner.resume = True
     ppo_runner, train_cfg = task_registry.make_alg_runner(env=env, name=args.task, args=args, train_cfg=train_cfg)
     policy = ppo_runner.get_inference_policy(device=env.device)
+    obs = env.get_observations()
     
     # export policy as a jit module (used to run it from C++)
     if EXPORT_POLICY:
@@ -47,5 +47,12 @@ if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
     MOVE_CAMERA = False
-    args = get_args()
-    play(args)
+    terrain_task = any(x == '--task=go2_terrain' for x in sys.argv) or any(
+        x == '--task' and i + 1 < len(sys.argv) and sys.argv[i+1] == 'go2_terrain'
+        for i, x in enumerate(sys.argv))
+    if terrain_task:
+        from legged_gym.utils.terrain_playback import main
+        main()
+    else:
+        args = get_args()
+        play(args)

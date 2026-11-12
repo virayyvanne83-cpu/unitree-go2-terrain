@@ -34,8 +34,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file", type=str, help="config file name in the config folder")
-    args = parser.parse_args()
+    args, extra = parser.parse_known_args()
     config_file = args.config_file
+    if config_file == "go2.yaml":
+        from pathlib import Path
+        from deploy_go2 import parse_args as go2_args, run as run_go2
+        run_go2(go2_args(["--config", str(Path(__file__).parent / "configs/go2.yaml"), *extra]))
+        raise SystemExit(0)
+    if extra:
+        parser.error("unrecognized arguments: " + " ".join(extra))
     with open(f"{LEGGED_GYM_ROOT_DIR}/deploy/deploy_mujoco/configs/{config_file}", "r") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         policy_path = config["policy_path"].replace("{LEGGED_GYM_ROOT_DIR}", LEGGED_GYM_ROOT_DIR)

@@ -1,3 +1,5 @@
+> 本分支的 Go2 地形课程、环境安装与回放入口见 [GitHub 使用说明](README.github.md)。本机记录见 [README.local.md](README.local.md)。
+
 <div align="center">
   <h1 align="center">Unitree RL GYM</h1>
   <p align="center">
@@ -198,3 +200,7 @@ This project is licensed under the [BSD 3-Clause License](./LICENSE):
 
 For details, please read the full [LICENSE file](./LICENSE).
 
+
+## 本机 Go2 地形课程
+
+本机已配置 48 维普通 MLP、独立 `go2_terrain` 课程和 48 维 MuJoCo 控制器。环境、预览、回放与验证见 [本机说明](README.local.md)。训练须另行明确启动，预览与回放不更新权重。

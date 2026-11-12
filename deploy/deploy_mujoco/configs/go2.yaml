@@ -1,0 +1,67 @@
+# Go2 flat-ground MuJoCo sim2sim, same style as g1.yaml / h1.yaml.
+# Export your own checkpoint first:
+#   python deploy/deploy_mujoco/export_go2_policy.py --checkpoint logs/<run>/model_N.pt
+# Then run:
+#   python deploy/deploy_mujoco/deploy_mujoco.py go2.yaml
+
+policy_path: "{LEGGED_GYM_ROOT_DIR}/logs/go2_terrain/Nov12_19-35-04_reconstruction_acceptance/exported/model_3/policy_1.pt"
+xml_path: "{LEGGED_GYM_ROOT_DIR}/resources/robots/go2/mujoco/scene.xml"
+
+simulation_duration: 60.0
+simulation_dt: 0.005
+control_decimation: 4
+
+num_obs: 48
+num_actions: 12
+activation: elu
+
+joint_names:
+  - FL_hip_joint
+  - FL_thigh_joint
+  - FL_calf_joint
+  - FR_hip_joint
+  - FR_thigh_joint
+  - FR_calf_joint
+  - RL_hip_joint
+  - RL_thigh_joint
+  - RL_calf_joint
+  - RR_hip_joint
+  - RR_thigh_joint
+  - RR_calf_joint
+
+default_angles: [0.1, 0.8, -1.5,
+                 -0.1, 0.8, -1.5,
+                 0.1, 1.0, -1.5,
+                 -0.1, 1.0, -1.5]
+
+kps: [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+kds: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+torque_limits: [23.7, 23.7, 35.55,
+                23.7, 23.7, 35.55,
+                23.7, 23.7, 35.55,
+                23.7, 23.7, 35.55]
+
+action_scale: 0.25
+clip_actions: 100.0
+clip_observations: 100.0
+
+lin_vel_scale: 2.0
+ang_vel_scale: 0.25
+dof_pos_scale: 1.0
+dof_vel_scale: 0.05
+cmd_scale: [2.0, 2.0, 0.25]
+
+init_height: 0.42
+self_collisions: false
+
+# keyboard mapping (WASD / arrows, E-Q turn, [/] speed)
+cmd_base:
+  vx: 0.4
+  vy: 0.4
+  yaw: 1.0
+cmd_range:
+  vx: [-1.0, 1.0]
+  vy: [-1.0, 1.0]
+  yaw: [-1.0, 1.0]
+cmd_scale_step: 0.1
+cmd_scale_range: [0.1, 1.5]

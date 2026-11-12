@@ -160,3 +160,26 @@ cython_debug/
 
 # logs
 logs
+
+# Local isolated SDK and RL dependency
+/isaacgym/
+/rsl_rl/
+/vendor/
+
+# Local authentication, SDKs, checkpoints and generated simulation artifacts
+/.tools/
+/.github-upload/
+*.pt
+*.pth
+*.onnx
+*.safetensors
+/verification/*.json
+/verification/*.png
+/verification/conda-explicit.txt
+/verification/requirements-freeze.txt
+/verification/pip-check.txt
+/verification/before_source_alignment/
+/verification/source_files/
+/verification/source_logs/
+/verification/smoke_training/
+/verification/source_alignment/

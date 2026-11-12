@@ -1,0 +1,2 @@
+# Treat third-party mesh assets as binary for review and exclude them from language statistics.
+resources/robots/go2/mujoco/assets/*.obj -diff linguist-vendored=true

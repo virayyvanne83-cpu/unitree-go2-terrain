@@ -8,4 +8,5 @@ setup(name='unitree_rl_gym',
       packages=find_packages(),
       author_email='support@unitree.com',
       description='Template RL environments for Unitree Robots',
-      install_requires=['isaacgym', 'rsl-rl', 'matplotlib', 'numpy==1.20', 'tensorboard', 'mujoco==3.2.3', 'pyyaml'])
+      extras_require={'sim2sim': ['pynput==1.7.7']},
+      install_requires=['isaacgym', 'rsl-rl', 'matplotlib', 'numpy>=1.23.5,<1.24', 'tensorboard', 'mujoco==3.2.3', 'pyyaml'])

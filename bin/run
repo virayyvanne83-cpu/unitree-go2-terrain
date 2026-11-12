@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+unset PYTHONHOME PYTHONPATH
+export PATH="$root/.venv/bin:$PATH"
+export CONDA_PREFIX="$root/.venv"
+export PYTHONPATH="$root:$root/rsl_rl:$root/isaacgym/python"
+export LD_LIBRARY_PATH="$root/.venv/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export CPATH="$root/.venv/include${CPATH:+:$CPATH}"
+export TORCH_EXTENSIONS_DIR="$root/.cache/torch_extensions"
+export PIP_CACHE_DIR="$root/.cache/pip"
+export MAX_JOBS=1
+export CC="$root/.venv/bin/x86_64-conda-linux-gnu-cc"
+export CXX="$root/.venv/bin/x86_64-conda-linux-gnu-c++"
+cd "$root"
+exec "$@"

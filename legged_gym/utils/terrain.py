@@ -15,7 +15,11 @@ class Terrain:
             return
         self.env_length = cfg.terrain_length
         self.env_width = cfg.terrain_width
-        self.proportions = [np.sum(cfg.terrain_proportions[:i+1]) for i in range(len(cfg.terrain_proportions))]
+        weights = np.asarray(cfg.terrain_proportions, dtype=float)
+        if len(weights) < 5 or np.any(weights < 0) or not np.isfinite(weights).all() or weights.sum() <= 0:
+            raise ValueError("terrain_proportions needs >=5 finite nonnegative weights with positive sum")
+        self.proportions = np.cumsum(weights / weights.sum()).tolist()
+        self.proportions += [1.0] * max(0, 7 - len(self.proportions))
 
         self.cfg.num_sub_terrains = cfg.num_rows * cfg.num_cols
         self.env_origins = np.zeros((cfg.num_rows, cfg.num_cols, 3))
@@ -55,36 +59,52 @@ class Terrain:
     def curiculum(self):
         for j in range(self.cfg.num_cols):
             for i in range(self.cfg.num_rows):
-                difficulty = i / self.cfg.num_rows
+                flat_rows = int(getattr(self.cfg, 'flat_rows', int(getattr(self.cfg, 'flat_start', False))))
+                if not 0 <= flat_rows < self.cfg.num_rows:
+                    raise ValueError('flat_rows must be >=0 and smaller than num_rows')
+                difficulty = max(0, i - flat_rows) / max(1, self.cfg.num_rows - flat_rows - 1) if flat_rows else i / self.cfg.num_rows
                 choice = j / self.cfg.num_cols + 0.001
 
-                terrain = self.make_terrain(choice, difficulty)
+                if i < flat_rows:
+                    terrain = terrain_utils.SubTerrain("flat",
+                        width=self.length_per_env_pixels, length=self.width_per_env_pixels,
+                        vertical_scale=self.cfg.vertical_scale, horizontal_scale=self.cfg.horizontal_scale)
+                else:
+                    terrain = self.make_terrain(choice, difficulty)
                 self.add_terrain_to_map(terrain, i, j)
 
     def selected_terrain(self):
-        terrain_type = self.cfg.terrain_kwargs.pop('type')
+        kwargs = dict(self.cfg.terrain_kwargs)
+        terrain_type = kwargs.pop('type')
+        fn = getattr(terrain_utils, terrain_type, None)
+        if fn is None or not callable(fn):
+            raise ValueError('Unknown selected terrain: ' + terrain_type)
         for k in range(self.cfg.num_sub_terrains):
             # Env coordinates in the world
             (i, j) = np.unravel_index(k, (self.cfg.num_rows, self.cfg.num_cols))
 
             terrain = terrain_utils.SubTerrain("terrain",
-                              width=self.width_per_env_pixels,
+                              width=self.length_per_env_pixels,
                               length=self.width_per_env_pixels,
-                              vertical_scale=self.vertical_scale,
-                              horizontal_scale=self.horizontal_scale)
+                              vertical_scale=self.cfg.vertical_scale,
+                              horizontal_scale=self.cfg.horizontal_scale)
 
-            eval(terrain_type)(terrain, **self.cfg.terrain_kwargs.terrain_kwargs)
+            fn(terrain, **kwargs.get('terrain_kwargs', kwargs))
             self.add_terrain_to_map(terrain, i, j)
     
     def make_terrain(self, choice, difficulty):
         terrain = terrain_utils.SubTerrain(   "terrain",
-                                width=self.width_per_env_pixels,
+                                width=self.length_per_env_pixels,
                                 length=self.width_per_env_pixels,
                                 vertical_scale=self.cfg.vertical_scale,
                                 horizontal_scale=self.cfg.horizontal_scale)
-        slope = difficulty * 0.4
-        step_height = 0.05 + 0.18 * difficulty
-        discrete_obstacles_height = 0.05 + difficulty * 0.2
+        def amplitude(name, default):
+            lo, hi = getattr(self.cfg, name, default)
+            return lo + (hi - lo) * difficulty
+        slope = amplitude('slope_range', [0.0, 0.4])
+        step_height = amplitude('step_height_range', [0.05, 0.23])
+        discrete_obstacles_height = amplitude('obstacle_height_range', [0.05, 0.25])
+        rough_height = amplitude('roughness_range', getattr(self.cfg, 'rough_height_range', [0.05, 0.05]))
         stepping_stones_size = 1.5 * (1.05 - difficulty)
         stone_distance = 0.05 if difficulty==0 else 0.1
         gap_size = 1. * difficulty
@@ -95,11 +115,11 @@ class Terrain:
             terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
         elif choice < self.proportions[1]:
             terrain_utils.pyramid_sloped_terrain(terrain, slope=slope, platform_size=3.)
-            terrain_utils.random_uniform_terrain(terrain, min_height=-0.05, max_height=0.05, step=0.005, downsampled_scale=0.2)
+            terrain_utils.random_uniform_terrain(terrain, min_height=-rough_height, max_height=rough_height, step=0.005, downsampled_scale=0.2)
         elif choice < self.proportions[3]:
             if choice<self.proportions[2]:
                 step_height *= -1
-            terrain_utils.pyramid_stairs_terrain(terrain, step_width=0.31, step_height=step_height, platform_size=3.)
+            terrain_utils.pyramid_stairs_terrain(terrain, step_width=getattr(self.cfg, 'step_width', 0.31), step_height=step_height, platform_size=3.)
         elif choice < self.proportions[4]:
             num_rectangles = 20
             rectangle_min_size = 1.
